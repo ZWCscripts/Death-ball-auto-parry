@@ -1,0 +1,141 @@
+-- Death Ball Delta Mobile Menü | Kusursuz Auto Parry & FPS dostu Spam Parry
+-- ZWCscripts için özel optimize
+
+-- Menü GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "DeathBallMobileMenu"
+gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,230,0,170)
+frame.Position = UDim2.new(0,30,0,100)
+frame.BackgroundColor3 = Color3.fromRGB(24,24,24)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+local uicorner = Instance.new("UICorner", frame)
+uicorner.CornerRadius = UDim.new(0,12)
+
+local title = Instance.new("TextLabel", frame)
+title.Text = "Death Ball Mobile"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.Size = UDim2.new(1,0,0,36)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(180,255,180)
+
+-- Auto Parry Toggle
+local autoParry = false
+local autoParryBtn = Instance.new("TextButton", frame)
+autoParryBtn.Size = UDim2.new(0.8,0,0,30)
+autoParryBtn.Position = UDim2.new(0.1,0,0,42)
+autoParryBtn.Text = "AUTO PARRY: OFF"
+autoParryBtn.Font = Enum.Font.GothamBold
+autoParryBtn.TextSize = 15
+autoParryBtn.BackgroundColor3 = Color3.fromRGB(70,90,120)
+autoParryBtn.TextColor3 = Color3.fromRGB(255,255,255)
+autoParryBtn.BorderSizePixel = 0
+local apCorner = Instance.new("UICorner", autoParryBtn)
+apCorner.CornerRadius = UDim.new(0,8)
+
+-- Auto Spam Parry Toggle
+local spamParry = false
+local spamBtn = Instance.new("TextButton", frame)
+spamBtn.Size = UDim2.new(0.8,0,0,30)
+spamBtn.Position = UDim2.new(0.1,0,0,80)
+spamBtn.Text = "SPAM PARRY: OFF"
+spamBtn.Font = Enum.Font.GothamBold
+spamBtn.TextSize = 15
+spamBtn.BackgroundColor3 = Color3.fromRGB(40,120,40)
+spamBtn.TextColor3 = Color3.fromRGB(255,255,255)
+spamBtn.BorderSizePixel = 0
+local spamCorner = Instance.new("UICorner", spamBtn)
+spamCorner.CornerRadius = UDim.new(0,8)
+
+-- FPS Boost
+local fpsBtn = Instance.new("TextButton", frame)
+fpsBtn.Size = UDim2.new(0.8,0,0,28)
+fpsBtn.Position = UDim2.new(0.1,0,0,125)
+fpsBtn.Text = "FPS BOOST"
+fpsBtn.Font = Enum.Font.GothamBold
+fpsBtn.TextSize = 15
+fpsBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+fpsBtn.TextColor3 = Color3.fromRGB(200,255,200)
+fpsBtn.BorderSizePixel = 0
+local fpsCorner = Instance.new("UICorner", fpsBtn)
+fpsCorner.CornerRadius = UDim.new(0,8)
+
+-- KUSURSUZ AUTO PARRY (Sadece top sana yaklaşınca, bir kere, spam yapmaz)
+local autoParryCon
+autoParryBtn.MouseButton1Click:Connect(function()
+    autoParry = not autoParry
+    autoParryBtn.Text = "AUTO PARRY: "..(autoParry and "ON" or "OFF")
+    autoParryBtn.BackgroundColor3 = autoParry and Color3.fromRGB(20,180,220) or Color3.fromRGB(70,90,120)
+    if autoParry then
+        if autoParryCon then autoParryCon:Disconnect() end
+        autoParryCon = game:GetService("RunService").RenderStepped:Connect(function()
+            local ball = workspace:FindFirstChild("Ball")
+            local char = game.Players.LocalPlayer.Character
+            if ball and char and char:FindFirstChild("HumanoidRootPart") then
+                local pos = char.HumanoidRootPart.Position
+                local dist = (ball.Position - pos).Magnitude
+                if dist < 13 then  -- mesafe istersen değiştirilebilir
+                    -- Burada 0.5 saniye içinde bir kez F basılır (gerçek parry gibi, spamlemez)
+                    if not autoParryBtn._parryCD or tick() - autoParryBtn._parryCD > 0.45 then
+                        local input = game:GetService("VirtualInputManager")
+                        pcall(function()
+                            input:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                            input:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                        end)
+                        autoParryBtn._parryCD = tick()
+                    end
+                end
+            end
+        end)
+    else
+        if autoParryCon then
+            autoParryCon:Disconnect()
+            autoParryCon = nil
+        end
+    end
+end)
+
+-- FPS Dostu SPAM PARRY (artık input hijack yok, dokunmatik/joystick engellemez!)
+local spamCon
+spamBtn.MouseButton1Click:Connect(function()
+    spamParry = not spamParry
+    spamBtn.Text = "SPAM PARRY: "..(spamParry and "ON" or "OFF")
+    spamBtn.BackgroundColor3 = spamParry and Color3.fromRGB(0,200,80) or Color3.fromRGB(40,120,40)
+    if spamParry then
+        if spamCon then spamCon:Disconnect() end
+        spamCon = game:GetService("RunService").RenderStepped:Connect(function()
+            -- Sadece oyun aktifse ve karakter varsa spamle
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and (not autoParry) then
+                local input = game:GetService("VirtualInputManager")
+                pcall(function()
+                    input:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                    input:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                end)
+            end
+        end)
+    else
+        if spamCon then
+            spamCon:Disconnect()
+            spamCon = nil
+        end
+    end
+end)
+
+-- FPS Boost
+fpsBtn.MouseButton1Click:Connect(function()
+    game:GetService("Lighting").FogEnd = 100
+    game:GetService("Lighting").Brightness = 0
+    game:GetService("Lighting").GlobalShadows = false
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic v.Reflectance = 0 end
+        if v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 1 end
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") then v.Enabled = false end
+    end
+end)
