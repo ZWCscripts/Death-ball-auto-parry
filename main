@@ -1,87 +1,62 @@
--- Death Ball Mobile Ultimate Script | ZWCscripts için özel
--- Kusursuz parry, spam parry, auto dodge, top ESP, FPS boost, stabil küçültme menüsü
+-- Death Ball (https://www.roblox.com/games/15002061926/Death-Ball) için Delta & Mobil Uyumlu, Kusursuz Auto Parry & FPS Boost Menü
 
+-- RemoteEvent referansı
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+local ParryRemote = Remotes and Remotes:FindFirstChild("Parry")
+
+if not ParryRemote then
+    -- Kullanıcıya bildirim (oyun güncellenirse veya event değişirse)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "UYARI!";
+        Text = "Parry RemoteEvent bulunamadı. Oyun güncellendiyse bana tekrar yaz!";
+        Duration = 10;
+    })
+    return
+end
+
+-- Menü GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "DeathBallMobileMenu"
+gui.Name = "DeathBallAutoParryMenu"
 gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
 
--- Menü ana frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,240,0,235)
-frame.Position = UDim2.new(0,36,0,104)
+frame.Size = UDim2.new(0,230,0,150)
+frame.Position = UDim2.new(0,30,0,120)
 frame.BackgroundColor3 = Color3.fromRGB(24,24,24)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 local uicorner = Instance.new("UICorner", frame)
-uicorner.CornerRadius = UDim.new(0,15)
+uicorner.CornerRadius = UDim.new(0,12)
 
--- Başlık ve küçültme butonu
-local topBar = Instance.new("Frame", frame)
-topBar.Size = UDim2.new(1,0,0,38)
-topBar.Position = UDim2.new(0,0,0,0)
-topBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-topBar.BorderSizePixel = 0
-local barCorner = Instance.new("UICorner", topBar)
-barCorner.CornerRadius = UDim.new(0,15)
-
-local title = Instance.new("TextLabel", topBar)
-title.Text = "Death Ball Mobile"
+local title = Instance.new("TextLabel", frame)
+title.Text = "Death Ball Auto Parry"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 20
-title.Size = UDim2.new(1,-38,1,0)
-title.Position = UDim2.new(0,0,0,0)
+title.TextSize = 18
+title.Size = UDim2.new(1,0,0,34)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(180,255,180)
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.TextStrokeTransparency = 0.7
 
-local minimize = Instance.new("TextButton", topBar)
-minimize.Size = UDim2.new(0,38,1,0)
-minimize.Position = UDim2.new(1,-38,0,0)
-minimize.Text = "_"
-minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 36
-minimize.BackgroundColor3 = Color3.fromRGB(35,35,35)
-minimize.TextColor3 = Color3.fromRGB(180,180,180)
-minimize.BorderSizePixel = 0
-local minCorner = Instance.new("UICorner", minimize)
-minCorner.CornerRadius = UDim.new(0,12)
+-- Auto Parry Toggle
+local autoParry = false
+local apBtn = Instance.new("TextButton", frame)
+apBtn.Size = UDim2.new(0.8,0,0,32)
+apBtn.Position = UDim2.new(0.1,0,0,40)
+apBtn.Text = "AUTO PARRY: OFF"
+apBtn.Font = Enum.Font.GothamBold
+apBtn.TextSize = 15
+apBtn.BackgroundColor3 = Color3.fromRGB(40,120,180)
+apBtn.TextColor3 = Color3.fromRGB(255,255,255)
+apBtn.BorderSizePixel = 0
+local apCorner = Instance.new("UICorner", apBtn)
+apCorner.CornerRadius = UDim.new(0,8)
 
--- İçerik frame'i
-local content = Instance.new("Frame", frame)
-content.Name = "Content"
-content.Position = UDim2.new(0,0,0,38)
-content.Size = UDim2.new(1,0,1,-38)
-content.BackgroundTransparency = 1
-
--- Toggle şablonu
-local function addToggle(text, posY)
-    local btn = Instance.new("TextButton", content)
-    btn.Size = UDim2.new(0.8,0,0,30)
-    btn.Position = UDim2.new(0.1,0,0,posY)
-    btn.Text = text..": OFF"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 15
-    btn.BackgroundColor3 = Color3.fromRGB(40,90,100)
-    btn.TextColor3 = Color3.fromRGB(230,230,230)
-    btn.BorderSizePixel = 0
-    local btnCorner = Instance.new("UICorner", btn)
-    btnCorner.CornerRadius = UDim.new(0,8)
-    return btn
-end
-
--- Özellik butonları
-local autoParryBtn = addToggle("Auto Parry", 8)
-local spamBtn = addToggle("Spam Parry", 48)
-local dodgeBtn = addToggle("Auto Dodge", 88)
-local espBtn = addToggle("Ball ESP", 128)
-
--- FPS Boost
-local fpsBtn = Instance.new("TextButton", content)
+-- FPS BOOST
+local fpsBtn = Instance.new("TextButton", frame)
 fpsBtn.Size = UDim2.new(0.8,0,0,28)
-fpsBtn.Position = UDim2.new(0.1,0,0,168)
+fpsBtn.Position = UDim2.new(0.1,0,0,90)
 fpsBtn.Text = "FPS BOOST"
 fpsBtn.Font = Enum.Font.GothamBold
 fpsBtn.TextSize = 15
@@ -91,152 +66,30 @@ fpsBtn.BorderSizePixel = 0
 local fpsCorner = Instance.new("UICorner", fpsBtn)
 fpsCorner.CornerRadius = UDim.new(0,8)
 
--- Menü küçültme fonksiyonu
-local minimized = false
-local function setMinimized(state)
-    minimized = state
-    content.Visible = not state
-    -- Sadece başlık ve minimize butonu görünür
-    if state then
-        frame.Size = UDim2.new(0,170,0,38)
-        frame.BackgroundTransparency = 0.25
-        topBar.Size = UDim2.new(1,0,1,0)
-        title.Text = "Death Ball"
-        title.Size = UDim2.new(1,-38,1,0)
-    else
-        frame.Size = UDim2.new(0,240,0,235)
-        frame.BackgroundTransparency = 0
-        topBar.Size = UDim2.new(1,0,0,38)
-        title.Text = "Death Ball Mobile"
-        title.Size = UDim2.new(1,-38,1,0)
-    end
-end
-minimize.MouseButton1Click:Connect(function()
-    setMinimized(not minimized)
-end)
-setMinimized(false) -- ilk açılışta büyük
-
--- --- Parry fonksiyonunu bul ---
-local function getParryButton()
-    local gui = game.Players.LocalPlayer.PlayerGui
-    for _,v in pairs(gui:GetDescendants()) do
-        if v:IsA("ImageButton") and (v.Name:lower():find("parry") or v.Name:lower():find("block")) then
-            return v
-        end
-    end
-    return nil
-end
-
-local function fireMobileParry()
-    local btn = getParryButton()
-    if btn then
-        pcall(function() btn:Activate() end)
-        pcall(function() btn:Fire("MouseButton1Click") end)
-        if btn.MouseButton1Click then pcall(function() btn.MouseButton1Click:Fire() end) end
-    end
-end
-
--- Auto Parry
-local autoParry, autoParryCon = false, nil
-autoParryBtn.MouseButton1Click:Connect(function()
+-- Kusursuz Auto Parry (top yaklaşınca, 0.45sn cooldown ile, spam olmadan)
+local autoParryCon
+apBtn.MouseButton1Click:Connect(function()
     autoParry = not autoParry
-    autoParryBtn.Text = "Auto Parry: "..(autoParry and "ON" or "OFF")
-    autoParryBtn.BackgroundColor3 = autoParry and Color3.fromRGB(20,180,220) or Color3.fromRGB(40,90,100)
+    apBtn.Text = "AUTO PARRY: "..(autoParry and "ON" or "OFF")
+    apBtn.BackgroundColor3 = autoParry and Color3.fromRGB(0,200,80) or Color3.fromRGB(40,120,180)
     if autoParry then
         if autoParryCon then autoParryCon:Disconnect() end
         autoParryCon = game:GetService("RunService").RenderStepped:Connect(function()
-            local ball = workspace:FindFirstChild("Ball")
             local char = game.Players.LocalPlayer.Character
-            if ball and char and char:FindFirstChild("HumanoidRootPart") then
-                local pos = char.HumanoidRootPart.Position
-                local dist = (ball.Position - pos).Magnitude
+            local ball = workspace:FindFirstChild("Ball")
+            if char and ball and char:FindFirstChild("HumanoidRootPart") then
+                local dist = (char.HumanoidRootPart.Position - ball.Position).Magnitude
                 if dist < 13 then
-                    if not autoParryBtn._parryCD or tick() - autoParryBtn._parryCD > 0.43 then
-                        fireMobileParry()
-                        autoParryBtn._parryCD = tick()
+                    if not apBtn._cd or tick() - apBtn._cd > 0.45 then
+                        -- Sadece gerektiğinde RemoteEvent ile parry yap!
+                        ParryRemote:FireServer()
+                        apBtn._cd = tick()
                     end
                 end
             end
         end)
     else
-        if autoParryCon then autoParryCon:Disconnect(); autoParryCon = nil end
-    end
-end)
-
--- Spam Parry
-local spamParry, spamCon = false, nil
-spamBtn.MouseButton1Click:Connect(function()
-    spamParry = not spamParry
-    spamBtn.Text = "Spam Parry: "..(spamParry and "ON" or "OFF")
-    spamBtn.BackgroundColor3 = spamParry and Color3.fromRGB(0,200,80) or Color3.fromRGB(40,90,100)
-    if spamParry then
-        if spamCon then spamCon:Disconnect() end
-        spamCon = game:GetService("RunService").RenderStepped:Connect(function()
-            fireMobileParry()
-        end)
-    else
-        if spamCon then spamCon:Disconnect(); spamCon = nil end
-    end
-end)
-
--- Auto Dodge
-local autoDodge, dodgeCon = false, nil
-dodgeBtn.MouseButton1Click:Connect(function()
-    autoDodge = not autoDodge
-    dodgeBtn.Text = "Auto Dodge: "..(autoDodge and "ON" or "OFF")
-    dodgeBtn.BackgroundColor3 = autoDodge and Color3.fromRGB(200,180,40) or Color3.fromRGB(40,90,100)
-    if autoDodge then
-        if dodgeCon then dodgeCon:Disconnect() end
-        dodgeCon = game:GetService("RunService").RenderStepped:Connect(function()
-            local ball = workspace:FindFirstChild("Ball")
-            local char = game.Players.LocalPlayer.Character
-            if ball and char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") then
-                local pos = char.HumanoidRootPart.Position
-                local dist = (ball.Position - pos).Magnitude
-                if dist < 14 then
-                    -- Kaçış yönü rastgele: sağ veya sol
-                    local side = math.random(0,1)*2-1
-                    local move = (char.HumanoidRootPart.CFrame.RightVector * side) * 7
-                    char.Humanoid:Move(move, false)
-                end
-            end
-        end)
-    else
-        if dodgeCon then dodgeCon:Disconnect(); dodgeCon = nil end
-    end
-end)
-
--- Ball ESP
-local espEnabled, espObj = false, nil
-local function createBallESP()
-    local ball = workspace:FindFirstChild("Ball")
-    if ball and not ball:FindFirstChild("DeathBallESP") then
-        local esp = Instance.new("SelectionBox", ball)
-        esp.Name = "DeathBallESP"
-        esp.Adornee = ball
-        esp.LineThickness = 0.08
-        esp.Color3 = Color3.fromRGB(255,255,0)
-        esp.SurfaceTransparency = 0.5
-    end
-end
-local function removeBallESP()
-    local ball = workspace:FindFirstChild("Ball")
-    if ball and ball:FindFirstChild("DeathBallESP") then
-        ball.DeathBallESP:Destroy()
-    end
-end
-espBtn.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    espBtn.Text = "Ball ESP: "..(espEnabled and "ON" or "OFF")
-    espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(255,255,90) or Color3.fromRGB(40,90,100)
-    if espEnabled then
-        createBallESP()
-        espBtn._espCon = workspace.ChildAdded:Connect(function(obj)
-            if obj.Name == "Ball" then wait(0.2) createBallESP() end
-        end)
-    else
-        removeBallESP()
-        if espBtn._espCon then espBtn._espCon:Disconnect(); espBtn._espCon = nil end
+        if autoParryCon then autoParryCon:Disconnect() autoParryCon = nil end
     end
 end)
 
